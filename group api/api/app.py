@@ -129,16 +129,33 @@ def return_user(group_id):
     return data[1]
 
 # TODO: 3. Complete the function to return the full name of the members in a group
-def print_group_member_info(user_data, width=20):
+def print_group_member_info(group_id, width=20):
     """Print group member information in a formatted way."""
+    """
     user_FullName = "John Wick"
     print("User1:".ljust(width) + user_FullName)
     print()
+    """
+    print("Group Members' Full Names:".ljust(width))
+    members_data, _ = supabase_client.table("Group Members Info").select("email").eq("group_id", group_id).execute()
+    for index,member in enumerate(members_data[1]):
+        email = member["email"]
+        user_data, _ = supabase_client.table("User Registration").select("first_name, last_name").eq("email", email).execute()
+        full_name = f"{user_data[1]['first_name']} {user_data[1]['last_name']}"
+        print(f"User{index}:".ljust(width) + full_name.ljust(width))
+
 
 # TODO: 4. Complete the function to return the food list(name & uri) of a group
-def print_food_list(favorites_data, width=20):
+def print_food_list(group_id, width=20):
     """Print food list information."""
     print()
+
+    food_data,_ = supabase_client.table("Group Food List").select("dish_uri").eq("group_id", group_id).execute()
+    print("Group Food List:".ljust(width))
+    for food in food_data[1]:
+        uri = food['dish_uri']
+        # TODO: Fetch the uri to the api to get the food data
+        print(uri)
 
 
 ########################################
