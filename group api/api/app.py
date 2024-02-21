@@ -247,6 +247,80 @@ def display_group_members(group_id):
     ]
     return members
 
+# display the top dish url that has the most votes (LIMIT 5)
+def display_top_votes(group_id):
+    voted_food, _ = supabase_client.table("Group Food List")\
+                    .select("dish_uri")\
+                    .eq("group_id", group_id)\
+                    .gt("votes_count", 0)\
+                    .order("votes_count", desc=True)\
+                    .limit(5)\
+                    .execute()
+    voted_food_list = voted_food[1]
+    return voted_food_list
+
+# When the user click the food, check if he's alr voted for 3, if yes, error, if not add that to the vote count
+def click_vote_dish(group_id, user_email, dish_uri):
+    valid_click = False
+    
+    # Give the count of how many times this user has voted
+    num_voted, _ = supabase_client.table("Group Vote")\
+                    .select('*')\
+                    .eq("group_id", group_id)\
+                    .eq("email", user_email)\
+                    .execute()
+    count = len(num_voted[1])
+    
+    # Get the status of this user
+    status, _ = supabase_client.table("Group Members Info")\
+                        .select("status")\
+                        .eq("email", user_email)\
+                        .eq("group_id", group_id)\
+                        .execute()
+    status_list = status[1]
+    if len(status_list) == 0:
+        user_status = 0
+    else:
+        user_status = status_list[0]['status']
+    
+    # Validate if the user has the right to vote
+    if user_status == 2:
+        if count < 11:
+            valid_click = True
+    if user_status == 1:
+        if count < 4:
+            valid_click = True
+    
+    # If valid to vote, add the dish uri to the table
+    if valid_click:
+        data_to_insert = {
+            'group_id': group_id,
+            'dish_uri': dish_uri,
+            'email': user_email
+        }
+        # Insert the data into Group Vote
+        data, _ = supabase_client.table("Group Vote")\
+                    .insert([data_to_insert])\
+                    .execute()
+        
+        # Get the updated count
+        new_count, _ = supabase_client.table("Group Vote")\
+                    .select('*')\
+                    .eq("group_id", group_id)\
+                    .eq("dish_uri", dish_uri)\
+                    .execute()
+        new_count = len(new_count[1])
+        
+        # Update the vote count in the Group Food List table
+        data, _ = supabase_client.table("Group Food List")\
+                    .update({"votes_count": new_count})\
+                    .eq("dish_uri", dish_uri)\
+                    .eq("group_id", group_id)\
+                    .execute()
+        print("Sucessfully voted")
+    else:
+        print("Vote is not sucessful. Check your condition")
+
 ########################################
 ##########    Sample Usage    ##########
 ########################################
