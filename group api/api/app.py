@@ -158,7 +158,23 @@ def print_food_list(group_id, width=20):
         uri = food['dish_uri']
         # TODO: Fetch the uri to the api to get the food data
         print(uri)
-
+        
+def display_groups(user_email):
+    response, _ = supabase_client.table("Group Members Info")\
+                    .select("group_id, status, Group Registration (group_name)")\
+                    .eq("email", user_email)\
+                    .execute()
+    
+    resonse_list = response[1]
+    
+    groups = [
+        {
+            'group_name': group['Group Registration']['group_name'],
+            'group_id': group['group_id'],
+            'status': group['status']
+        } for group in resonse_list
+    ]
+    return groups
 
 ########################################
 ##########    Sample Usage    ##########
