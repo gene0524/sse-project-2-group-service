@@ -198,6 +198,23 @@ def display_groups(user_email):
     print(groups)
     return groups
 
+def display_group_members(group_id):
+    response, _ = supabase_client.table("Group Members Info")\
+                        .select("email, status, User Registration (firstname, lastname)")\
+                        .eq("group_id", group_id)\
+                        .gt("status", 0)\
+                        .execute()
+    response_list = response[1]
+    members = [
+        {
+            'email': member['email'],
+            'first_name': member['User Registration']['firstname'],
+            'last_name': member['User Registration']['lastname'],
+            'stauts': member['status']
+        } for member in response_list
+    ]
+    return members
+
 display_groups("user1@gmail.com")
 
 ########################################
