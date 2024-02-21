@@ -58,12 +58,13 @@ def get_data_from_table(table_name):
         "Content-Type": "application/json",
     }
     response = requests.get(f"{SUPABASE_URL}/rest/v1/{table_name}", headers=HEADERS)
+    
     if response.status_code == 200:
-        print("Request success!")
+        # print("Request success!")
         print(response.text)
         return response.json()
     else:
-        print(f"Error: {response.text}")
+        # print(f"Error: {response.text}")
         return f"Error: {response.text}"
 
 ########################################
@@ -77,14 +78,12 @@ def create_group(group_name, email_list):
     group_id = group_data[0]['group_id']
     print(group_id)
 
-    # Status: 2 for group owner(first email in list), 1 for member, 0 for pending
-    # Assuming the first person in the email list is the group owner
+    # Assuming the first person in the email list is the group owner (status 2)
     add_member_to_group(group_id, email_list[0], 2)
-    
-    # Add other members to Group Members Info, and set their status to pending by default
+    # Add other members to Group Members Info, and set their status to pending (status 0) by default
     for email in email_list[1:]:
         add_member_to_group(group_id, email, 0)
-
+        
     return
 
 def add_group_to_groupbase(group_name):
@@ -107,6 +106,40 @@ def add_member_to_group(group_id, email, status):
 # Sample Usage:
 # create_group("group_test_1", ["user1@gmail.com", "user2@gmail.com", "user3@gmail.com"])
 # TODO: from client side, check if invited users are already in the User Registration Table
+
+########################################
+##########    Voting.html     ##########
+########################################
+def display_vote_options(group_id, user_email):
+    response_1, _ = supabase_client.table("Group Food List")\
+                    .select("dish_uri, votes_count")\
+                    .eq("group_id", group_id)\
+                    .execute()
+    
+    dish_list = response_1[1]
+    
+    response_2, _ = supabase_client.table("Group Vote")\
+                    .select("dish_uri")\
+                    .eq("group_id", group_id).eq("email", user_email)\
+                    .execute()
+
+    options_voted = response_2[1]
+    
+    # Create a list of dish_uris that the user has voted for
+    voted_list = [vote['dish_uri'] for vote in options_voted]  
+    
+    dishes = [
+        {
+            'dish_uri': dish['dish_uri'],
+            'votes_count': dish['votes_count'],
+            'voted_by_user': dish['dish_uri'] in voted_list
+        } for dish in dish_list
+    ]
+    print(dishes)
+    return dishes
+
+display_vote_options(1, "user1@gmail.com")
+
 
 ########################################
 ##########     Group.html     ##########
@@ -195,7 +228,6 @@ def display_groups(user_email):
             'status': group['status']
         } for group in response_list
     ]
-    print(groups)
     return groups
 
 def display_group_members(group_id):
@@ -214,8 +246,6 @@ def display_group_members(group_id):
         } for member in response_list
     ]
     return members
-
-display_groups("user1@gmail.com")
 
 ########################################
 ##########    Sample Usage    ##########
