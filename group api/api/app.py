@@ -105,7 +105,7 @@ def add_member_to_group(group_id, email, status):
     return data
 
 # Sample Usage:
-create_group("group_test_create", ["user1@gmail.com", "user2@gmail.com"])
+# create_group("group_test_1", ["user1@gmail.com", "user2@gmail.com", "user3@gmail.com"])
 # TODO: from client side, check if invited users are already in the User Registration Table
 
 ########################################
@@ -181,20 +181,24 @@ def print_food_list(group_id, width=20):
 
 def display_groups(user_email):
     response, _ = supabase_client.table("Group Members Info")\
-                    .select("group_id, status, Group Registration (group_name)")\
+                    .select("group_id, status, Group Registration (group_name, description)")\
                     .eq("email", user_email)\
                     .execute()
     
-    resonse_list = response[1]
+    response_list = response[1]
     
     groups = [
         {
             'group_name': group['Group Registration']['group_name'],
+            'description': group['Group Registration']['description'],
             'group_id': group['group_id'],
             'status': group['status']
-        } for group in resonse_list
+        } for group in response_list
     ]
+    print(groups)
     return groups
+
+display_groups("user1@gmail.com")
 
 ########################################
 ##########    Sample Usage    ##########
