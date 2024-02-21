@@ -13,52 +13,41 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 # Initialize the Supabase Client
 supabase_client = supabase.create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# TODO: 1. authenticate user for modifying table with Row Level Security
-# result = supabase_client.auth.sign_in_with_password({
-#     "email": "geneaaaaa@gmail.com",
-#     "password": "Team_team2024"}
-# )
-
-# TODO: 2. complete the app to return the json format data (group information) based on the queries
+# TODO: 1. complete the app to return the json format data (group information) based on the queries
 app = Flask(__name__)
+
+# Mock database for demonstration purposes
+# In a real application, you would query your actual database
+groups_info = {
+    "group1": {"group_name": "Food Lovers", "members": [{"email": "member1@example.com", "status": "active"}, {"email": "member2@example.com", "status": "pending"}]},
+    "group2": {"group_name": "Veggie Friends", "members": [{"email": "member3@example.com", "status": "active"}, {"email": "member4@example.com", "status": "active"}]}
+}
 
 @app.route("/", methods=["GET"])
 def index():
-    return 
-    query = request.args.get("query")
-    filter = request.args.get("filter")
-
-    if query and filter:
-        try:
-            # Query the data from your Supabase table
-            data = supabase.table("groupInfo").select("*").execute()
-            if data.error:
-                raise Exception(data.error.message)
-            results = data.data
-
-            # Filter the data based on the query and filter provided
-            filtered_data = [i for i in results if query.lower() in str(i.get(filter, '')).lower()]
-            return jsonify(filtered_data)
-        except Exception as e:
-            return jsonify({"error": str(e)}), 400
-
-    # If no query and filter provided, return all data
+    # Example: Query parameters could be used to specify which group's information to return
+    group_id = request.args.get('group_id', default=None, type=str)
+    
+    # Check if group_id is provided and valid
+    if group_id and group_id in groups_info:
+        # Return the requested group's information as JSON
+        return jsonify(groups_info[group_id]), 200
+    elif group_id:
+        # If group_id is provided but not found, return an error message
+        return jsonify({"error": "Group not found"}), 404
     else:
-        data = supabase.table("groupInfo").select("*").execute()
-        if data.error:
-            return jsonify({"error": data.error.message}), 400
-        return jsonify(data.data)
-
+        # If no group_id is provided, return information for all groups
+        return jsonify(groups_info), 200
 
 ########################################
 ##########       Tables       ##########
 ########################################
-# Group Food List:      group_id    dish_uri
+# Group Food List:      group_id    dish_uri    votes_count
 # Group Members Info:   group_id    email       status
 # Group Registration:   group_id    group_name
+# Group Vote:           group_id    dish_uri    email
 # User Favorites:       email       dish_uri
 # User Registration:    email       first_name  last_name   password
-
 
 def get_data_from_table(table_name):
     """Fetch data from a Supabase table."""
@@ -77,21 +66,51 @@ def get_data_from_table(table_name):
         print(f"Error: {response.text}")
         return f"Error: {response.text}"
 
+########################################
+##########    Create Group    ##########
+########################################
+
+# When "create group" button pressed (in main service):
+def create_group(group_name, email_list):
+    # Create group and retrieve group_id
+    _, group_data = add_group_to_groupbase(group_name)
+    group_id = group_data[0]['group_id']
+    print(group_id)
+
+    # Status: 2 for group owner(first email in list), 1 for member, 0 for pending
+    # Assuming the first person in the email list is the group owner
+    add_member_to_group(group_id, email_list[0], 2)
+    
+    # Add other members to Group Members Info, and set their status to pending by default
+    for email in email_list[1:]:
+        add_member_to_group(group_id, email, 0)
+
+    return
+
 def add_group_to_groupbase(group_name):
     data_to_insert = {
         "group_name": group_name
     }
     data, _ = supabase_client.table("Group Registration").insert([data_to_insert]).execute()
+    print(data)
     return data
 
-def add_member_to_group(group_id, email):
+def add_member_to_group(group_id, email, status):
     data_to_insert = {
         "group_id": group_id,
         "email": email,
-        "status": 0
+        "status": status
     }
     data, _ = supabase_client.table("Group Members Info").insert([data_to_insert]).execute()
     return data
+
+# Sample Usage:
+create_group("group_test_create", ["user1@gmail.com", "user2@gmail.com"])
+# TODO: from client side, check if invited users are already in the User Registration Table
+
+########################################
+##########     Group.html     ##########
+########################################
 
 def add_food_to_group(group_id, dish_uri):
     data_to_insert = {
@@ -181,16 +200,8 @@ def display_groups(user_email):
 ########################################
 
 '''get_data_from_table(table_name)'''
-get_data_from_table("User Registration")
+# get_data_from_table("User Registration")
 
 '''add_group_to_groupbase(group_name)'''
-add_group_to_groupbase("Group1")
-
-# Example usage: 
-# favorites_data = return_data("Favorites", username_to_check)
-# delete_row_from_table("Favorites", username_to_check, "http://www.edamam.com/ontologies/edamam.owl#recipe_92f5af46a5adafda4b26ff16f4fb7c89")
-# print(favorites_data)
-# if favorites_data:
-#     print("Favorite cuisines:")
-#     print_favorites_info(favorites_data)
+# add_group_to_groupbase("Group1")
 
