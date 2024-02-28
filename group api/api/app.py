@@ -50,7 +50,7 @@ def index():
 # User Registration:    email       first_name  last_name   password
 
 def get_data_from_table(table_name):
-    """Fetch data from a Supabase table."""
+    """Fetch data from a Supasdfabase table."""
     # Headers for HTTP requests
     HEADERS = {
         "apikey": SUPABASE_KEY,
