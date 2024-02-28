@@ -6,7 +6,7 @@ import os
 
 load_dotenv()
 
-# Constants foqewrr Supabase URL and API keys
+# Constants for Supabase URL and API keys
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
