@@ -67,14 +67,16 @@ def get_data_from_table(table_name):
         # print(f"Error: {response.text}")
         return f"Error: {response.text}"
 
+# get_data_from_table("Group Members Info")
+
 ########################################
 ##########    Create Group    ##########
 ########################################
 
 # When "create group" button pressed (in main service):
-def create_group(group_name, email_list):
+def create_group(group_name, email_list, description=None):
     # Create group and retrieve group_id
-    _, group_data = add_group_to_groupbase(group_name)
+    group_data = add_group_to_groupbase(group_name, description)
     group_id = group_data[0]['group_id']
     print(group_id)
 
@@ -83,16 +85,16 @@ def create_group(group_name, email_list):
     # Add other members to Group Members Info, and set their status to pending (status 0) by default
     for email in email_list[1:]:
         add_member_to_group(group_id, email, 0)
-        
     return
 
-def add_group_to_groupbase(group_name):
+def add_group_to_groupbase(group_name, description=None):
     data_to_insert = {
-        "group_name": group_name
+        "group_name": group_name,
+        "description": description
     }
     data, _ = supabase_client.table("Group Registration").insert([data_to_insert]).execute()
-    print(data)
-    return data
+    # print(data)
+    return data[1]
 
 def add_member_to_group(group_id, email, status):
     data_to_insert = {
@@ -100,11 +102,10 @@ def add_member_to_group(group_id, email, status):
         "email": email,
         "status": status
     }
-    data, _ = supabase_client.table("Group Members Info").insert([data_to_insert]).execute()
-    return data
+    supabase_client.table("Group Members Info").insert([data_to_insert]).execute()
+    return
 
-# Sample Usage:
-# create_group("group_test_1", ["user1@gmail.com", "user2@gmail.com", "user3@gmail.com"])
+create_group("group_test_feb", ["user1@gmail.com", "user2@gmail.com", "user3@gmail.com"], "test description")
 # TODO: from client side, check if invited users are already in the User Registration Table
 
 ########################################
@@ -138,7 +139,7 @@ def display_vote_options(group_id, user_email):
     print(dishes)
     return dishes
 
-display_vote_options(1, "user1@gmail.com")
+#display_vote_options(1, "user1@gmail.com")
 
 
 ########################################
@@ -321,6 +322,3 @@ def click_vote_dish(group_id, user_email, dish_uri):
     else:
         print("Vote is not sucessful. Check your condition")
 
-########################################
-##########    Sample Usage    ##########
-########################################
