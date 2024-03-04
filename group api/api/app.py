@@ -105,7 +105,7 @@ def add_member_to_group(group_id, email, status):
     supabase_client.table("Group Members Info").insert([data_to_insert]).execute()
     return
 
-create_group("group_test_feb", ["user1@gmail.com", "user2@gmail.com", "user3@gmail.com"], "test description")
+# create_group("group_test_feb", ["user1@gmail.com", "user2@gmail.com", "user3@gmail.com"], "test description")
 # TODO: from client side, check if invited users are already in the User Registration Table
 
 ########################################
@@ -139,7 +139,7 @@ def display_vote_options(group_id, user_email):
     print(dishes)
     return dishes
 
-#display_vote_options(1, "user1@gmail.com")
+# display_vote_options(1, "user1@gmail.com")
 
 
 ########################################
@@ -149,37 +149,65 @@ def display_vote_options(group_id, user_email):
 def add_food_to_group(group_id, dish_uri):
     data_to_insert = {
         "group_id": group_id,
-        "dish_uri": dish_uri
+        "dish_uri": dish_uri,
+        "votes_count": 0
     }
     data, _ = supabase_client.table("Group Food List").insert([data_to_insert]).execute()
-    return data
+    return data[1]
 
 def delete_group_from_groupbase(group_id):
     data, _ = supabase_client.table("Group Registration").delete().eq("group_id", group_id).execute()
-    return data
+    return data[1]
 
 def delete_member_from_group(group_id, email):
-    data, _ = supabase_client.table("Group Members Info").delete().eq("group_id", group_id).eq("email", email).execute()
-    return data
+    # Check the status of the member in the group
+    response, _ = supabase_client.table("Group Members Info")\
+                    .select("status")\
+                    .eq("group_id", group_id)\
+                    .eq("email", email)\
+                    .execute()
+
+    # If there is an error or no data found, return an error message
+    if not response:
+        print("Error: Failed to retrieve member status or member does not exist.")
+        return {'error': 'Failed to retrieve member status or member does not exist.'}
+
+    # If the status of the member is 2, they are the owner and cannot be deleted
+    member_status = response[1][0]["status"]
+    if member_status == 2:
+        print("Error: Cannot delete group owner.")
+        return {'error': 'Cannot delete group owner.'}
+
+    # If the member is not the owner, proceed to delete them from the group
+    data, _ = supabase_client.table("Group Members Info").delete()\
+                    .eq("group_id", group_id)\
+                    .eq("email", email)\
+                    .execute()
+    if data[1]:
+        print("Successfully deleted!")
+    return data[1]
 
 def delete_food_from_group(group_id, dish_uri):
-    data, _ = supabase_client.table("Group Members Info").delete().eq("group_id", group_id).eq("dish_uri", dish_uri).execute()
-    return data
-
-def return_data(table_name, username):
-    """Return data based on username from a Supabase table."""
-    data, _ = supabase_client.table(table_name).select("*").eq("username (email)", username).execute()
+    data, _ = supabase_client.table("Group Food List").delete().eq("group_id", group_id).eq("dish_uri", dish_uri).execute()
+    if data[1]:
+        print("Successfully deleted!")
     return data[1]
 
-def return_user(group_id):
-    """Return data based on group_id from a Group Registration table."""
-    data, _ = (
-        supabase_client.table("Group Registration")
-        .select("*")
-        .eq("group_id", group_id)
-        .execute()
+def return_user_fullname(email):
+    """Return user's fullname from User Registration table."""
+    data, _ = supabase_client.table("User Registration").select("firstname", "lastname").eq("email", email).execute()
+    user_info = data[1][0]
+    fullname = user_info["firstname"] + " " + user_info["lastname"]
+    print(fullname)
+    return fullname
+
+def return_group_info(group_id):
+    """Return group info from Group Registration table."""
+    data, _ = (supabase_client.table("Group Registration").select("*").eq("group_id", group_id).execute()
     )
-    return data[1]
+    group_info = data[1][0]
+    print(group_info)
+    return group_info
 
 # TODO: 3. Complete the function to return the full name of the members in a group
 def print_group_member_info(group_id, width=20):

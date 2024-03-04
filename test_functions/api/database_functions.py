@@ -153,3 +153,31 @@ def click_vote_dish(group_id, user_email, dish_uri):
         print("Sucessfully voted")
     else:
         print("Vote is not sucessful. Check your condition")
+        
+def display_vote_options(group_id, user_email):
+    response_1, _ = supabase_client.table("Group Food List")\
+                    .select("dish_uri, votes_count")\
+                    .eq("group_id", group_id)\
+                    .execute()
+    
+    dish_list = response_1[1]
+    
+    response_2, _ = supabase_client.table("Group Vote")\
+                    .select("dish_uri")\
+                    .eq("group_id", group_id).eq("email", user_email)\
+                    .execute()
+
+    options_voted = response_2[1]
+    
+    # Create a list of dish_uris that the user has voted for
+    voted_list = [vote['dish_uri'] for vote in options_voted]  
+    
+    dishes = [
+        {
+            'dish_uri': dish['dish_uri'],
+            'votes_count': dish['votes_count'],
+            'voted_by_user': dish['dish_uri'] in voted_list
+        } for dish in dish_list
+    ]
+    print(dishes)
+    return dishes
