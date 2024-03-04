@@ -223,7 +223,7 @@ def return_group_members(group_id):
     print(full_names_list)
     return full_names_list
 
-def print_food_list(group_id):
+def return_group_food_list(group_id):
     """Return group's food list."""
     data,_ = supabase_client.table("Group Food List").select("dish_uri").eq("group_id", group_id).execute()
     food_data = data[1]
