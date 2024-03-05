@@ -43,7 +43,7 @@ def add_member_to_group(group_id, email, status):
     return
 
 # Display the groups that this user is part of / is invited
-def display_groups(user_email):
+def display_user_groups(user_email):
     response, _ = supabase_client.table("Group Members Info")\
                     .select("group_id, status, Group Registration (group_name, description)")\
                     .eq("email", user_email)\

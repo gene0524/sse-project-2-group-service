@@ -282,6 +282,7 @@ def display_top_votes(group_id):
                     .limit(5)\
                     .execute()
     voted_food_list = voted_food[1]
+    print(voted_food_list)
     return voted_food_list
 
 # When the user click the food, check if he's alr voted for 3, if yes, error, if not add that to the vote count
