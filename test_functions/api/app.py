@@ -98,11 +98,11 @@ def app_display_vote_options():
         user_email = request_data.get('userEmail')
         
         dish_uri = request_data.get('dishUri')
-        display_vote_options(group_id, user_email)
-        dishes = [
-            {'dish_uri': dish_uri, 'votes_count': votes_count, 'voted_by_user': dish['dish_uri'] in voted_list
-        }
-    ]
-        return jsonify(message='Vote registered successfully')
+        votes = display_vote_options(group_id, user_email)
+        #dishes = [
+        #    {'dish_uri': dish_uri, 'votes_count': votes_count, 'voted_by_user': dish['dish_uri'] in voted_list
+        #}
+        #]
+        return jsonify(allVotes=votes)
     except Exception as e:
         return jsonify(error=str(e)), 500
