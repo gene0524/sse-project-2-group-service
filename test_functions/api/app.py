@@ -68,7 +68,6 @@ def app_display_top_votes():
         request_data = request.json
         group_id = request_data.get('groupId')
         top_votes = display_top_votes(group_id)
-        [{'dish_uri': 'Egg'}, {'dish_uri': 'Fish'}, {'dish_uri': 'Beef'}]
         # top_votes = [
         #     {'dish_uri': dish_uri},
         #     {'dish_uri': dish_uri},
@@ -96,13 +95,14 @@ def app_display_vote_options():
         request_data = request.json
         group_id = request_data.get('groupId')
         user_email = request_data.get('userEmail')
-        
-        dish_uri = request_data.get('dishUri')
-        votes = display_vote_options(group_id, user_email)
-        #dishes = [
-        #    {'dish_uri': dish_uri, 'votes_count': votes_count, 'voted_by_user': dish['dish_uri'] in voted_list
-        #}
-        #]
-        return jsonify(allVotes=votes)
+        dish_options = display_vote_options(group_id, user_email)
+        # dishes = [
+        #     {'dish_uri': dish_uri, 'votes_count': 3, 'voted_by_user': 0},
+        #     {'dish_uri': dish_uri, 'votes_count': 2, 'voted_by_user': 1},
+        #     {'dish_uri': dish_uri, 'votes_count': 5, 'voted_by_user': 1}
+        # ]
+        return jsonify(dish_options)
     except Exception as e:
         return jsonify(error=str(e)), 500
+    
+
