@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
-from database_functions import create_group, display_user_groups, display_group_members,\
-    delete_member_from_group, delete_group, display_top_votes, display_vote_options,\
-    click_vote_dish, add_food_to_group, accept_group_invitation, decline_group_invitation
+from database_functions import create_group, display_user_groups, accept_group_invitation,\
+    decline_group_invitation, display_group_members, delete_member_from_group, delete_group,\
+    display_top_votes, display_vote_options, click_vote_dish, add_food_to_groups
 
 app = Flask(__name__)
 CORS(app) 
@@ -38,7 +38,37 @@ def app_display_user_groups():
         print(groups)
         return jsonify(groups)
     except Exception as e:
-        return jsonify(error=str(e)), 500    
+        return jsonify(error=str(e)), 500
+
+# Route to accept a group invitation
+@app.route('/accept-group', methods=['POST'])
+def accept_group():
+    try:
+        request_data = request.json
+        group_id = request_data.get('group_id')
+        email = request_data.get('email')
+        result = accept_group_invitation(group_id, email)
+        if result:
+            return jsonify(message='Group invitation accepted successfully')
+        else:
+            return jsonify(error='Failed to accept the group invitation'), 500
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+# Route to decline a group invitation
+@app.route('/decline-group', methods=['POST'])
+def decline_group():
+    try:
+        request_data = request.json
+        group_id = request_data.get('group_id')
+        email = request_data.get('email')
+        result = decline_group_invitation(group_id, email)
+        if result:
+            return jsonify(message='Group invitation declined successfully')
+        else:
+            return jsonify(error='Failed to decline the group invitation'), 500
+    except Exception as e:
+        return jsonify(error=str(e)), 500
 
 ##### group_info.html #####
 
@@ -132,47 +162,17 @@ def app_click_vote_dish():
     except Exception as e:
         return jsonify(error=str(e)), 500
 
-##### user_favorites.html & search_result.html #####
+##### profile.html #####
 
 # Function to add a food to Group Food List table
-@app.route('/add-food-to-group', methods=['POST'])
-def app_add_food_to_group():
+@app.route('/add-food-to-groups', methods=['POST'])
+def app_add_food_to_groups():
     try:
         request_data = request.json
-        group_id = request_data.get('groupId')
+        email = request_data.get('userEmail')
         dish_uri = request_data.get('dishUri')
-        add_food_to_group(group_id, dish_uri)
+        add_food_to_groups(email, dish_uri)
         
         return jsonify(message='Food added successfully')
-    except Exception as e:
-        return jsonify(error=str(e)), 500
-    
-# Route to accept a group invitation
-@app.route('/accept-group', methods=['POST'])
-def accept_group():
-    try:
-        request_data = request.json
-        group_id = request_data.get('group_id')
-        email = request_data.get('email')
-        result = accept_group_invitation(group_id, email)
-        if result:
-            return jsonify(message='Group invitation accepted successfully')
-        else:
-            return jsonify(error='Failed to accept the group invitation'), 500
-    except Exception as e:
-        return jsonify(error=str(e)), 500
-
-# Route to decline a group invitation
-@app.route('/decline-group', methods=['POST'])
-def decline_group():
-    try:
-        request_data = request.json
-        group_id = request_data.get('group_id')
-        email = request_data.get('email')
-        result = decline_group_invitation(group_id, email)
-        if result:
-            return jsonify(message='Group invitation declined successfully')
-        else:
-            return jsonify(error='Failed to decline the group invitation'), 500
     except Exception as e:
         return jsonify(error=str(e)), 500

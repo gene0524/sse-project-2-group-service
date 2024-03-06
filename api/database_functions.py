@@ -64,6 +64,32 @@ def display_user_groups(user_email):
     ]
     return groups
 
+# Function to decline the group invitation, will delete the row containing email and group id from Group Member Info table
+def decline_group_invitation(group_id, email):
+    data, _ = supabase_client.table("Group Members Info")\
+                .delete()\
+                .eq("group_id", group_id)\
+                .eq("email", email)\
+                .execute()
+    if data[1]:
+        print("Successfully decline the group invitation.")
+        return data[1]
+    else:
+        print("Error, could not decline the invitation")
+
+# Function to accept the group invitation, will set the status to 1 in Group Member Info table
+def accept_group_invitation(group_id, email):
+    data, _ = supabase_client.table("Group Members Info")\
+                    .update({"status": 1})\
+                    .eq("email", email)\
+                    .eq("group_id", group_id)\
+                    .execute()
+    if data[1]:
+        print("Successfully accept the group invitation")
+        return data[1]
+    else:
+        print("Error, could not accept the invitation")
+
 ##### group_info.html #####
 
 # Function to display the group members in a specified group
@@ -84,8 +110,6 @@ def display_group_members(group_id):
     ]
     print(members)
     return members
-
-display_group_members(1)
 
 # Function to delete a member from the group
 def delete_member_from_group(group_id, email):
@@ -117,7 +141,6 @@ def delete_member_from_group(group_id, email):
     return data[1]
 
 # Function to delete the group
-# TODO: Check that only the owner can delete the group
 def delete_group(group_id):
     data, _ = supabase_client.table("Group Registration").delete().eq("group_id", group_id).execute()
     return data[1]
@@ -165,7 +188,6 @@ def display_vote_options(group_id, user_email):
     return dishes
 
 # Function to vote for a dish (check if total votes have exceeded 3)
-# TODO: whether the number of votes should be unified to 3
 def click_vote_dish(group_id, user_email, dish_uri):
     valid_click = False
     
@@ -212,42 +234,45 @@ def click_vote_dish(group_id, user_email, dish_uri):
         print("Vote is not successful. Check your condition")
         
 
-##### user_favorites.html & search_result.html #####
+##### profile.html #####
 
 # Function to add a food to Group Food List table
-def add_food_to_group(group_id, dish_uri):
+def add_food_to_groups(email, dish_uri):
+    # Query the "Group Members Info" to get the group_ids for the given email
+    data, error = supabase_client.table("Group Members Info")\
+        .select("group_id")\
+        .eq("email", email)\
+        .execute()
+
+    group_id_data = data[1]
+
+    # Check if data was retrieved successfully
+    if not group_id_data:
+        print("No groups found for the given email.")
+        return
+
+    # # Extract the group_ids from the query result
+    group_ids = [item['group_id'] for item in group_id_data]
+
+    # For each group_id, add the dish_uri to the "Group Food List"
+    for group_id in group_ids:
+        # Use the already defined function to add food to the food list
+        result = add_food_to_food_list(group_id, dish_uri)
+        if result:
+            print(f"Dish added to group {group_id} successfully.")
+        else:
+            print(f"Failed to add dish to group {group_id}.")
+
+# subfunction of add_food_to_groups(), add the dish_uri to Group Food List table
+def add_food_to_food_list(group_id, dish_uri):
+    # Assume the implementation of this function is as provided earlier
     data_to_insert = {
         "group_id": group_id,
         "dish_uri": dish_uri,
         "votes_count": 0
     }
-    data, _ = supabase_client.table("Group Food List").insert([data_to_insert]).execute()
-    return data[1]
-
-# Function to decline the group invitation 
-# Will delete the row containing email and group id from Group Member Info table
-def decline_group_invitation(group_id, email):
-    data, _ = supabase_client.table("Group Members Info")\
-                .delete()\
-                .eq("group_id", group_id)\
-                .eq("email", email)\
-                .execute()
-    if data[1]:
-        print("Successfully decline the group invitation.")
-        return data[1]
-    else:
-        print("Error, could not decline the invitation")
-
-# Function to accept the group invitation
-# Will update the user's status to 1 in Group Member Info table
-def accept_group_invitation(group_id, email):
-    data, _ = supabase_client.table("Group Members Info")\
-                    .update({"status": 1})\
-                    .eq("email", email)\
-                    .eq("group_id", group_id)\
-                    .execute()
-    if data[1]:
-        print("Successfully accept the group invitation")
-        return data[1]
-    else:
-        print("Error, could not accept the invitation")
+    data, error = supabase_client.table("Group Food List").insert([data_to_insert]).execute()
+    if error:
+        print(f"Error inserting data: {error}")
+        return False
+    return True
