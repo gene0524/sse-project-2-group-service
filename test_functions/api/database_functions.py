@@ -172,25 +172,9 @@ def click_vote_dish(group_id, user_email, dish_uri):
                     .execute()
     count = len(num_voted[1])
     
-    # Get the status of this user
-    status, _ = supabase_client.table("Group Members Info")\
-                        .select("status")\
-                        .eq("email", user_email)\
-                        .eq("group_id", group_id)\
-                        .execute()
-    status_list = status[1]
-    if len(status_list) == 0:
-        user_status = 0
-    else:
-        user_status = status_list[0]['status']
-    
     # Validate if the user has the right to vote (owner)
-    if user_status == 2:
-        if count < 11:
-            valid_click = True
-    if user_status == 1:
-        if count < 4:
-            valid_click = True
+    if count < 3:
+        valid_click = True
     
     # If valid to vote, add the dish uri to the table
     if valid_click:
@@ -218,9 +202,9 @@ def click_vote_dish(group_id, user_email, dish_uri):
                     .eq("dish_uri", dish_uri)\
                     .eq("group_id", group_id)\
                     .execute()
-        print("Sucessfully voted")
+        print("Successfully voted")
     else:
-        print("Vote is not sucessful. Check your condition")
+        print("Vote is not successful. Check your condition")
         
 
 ##### user_favorites.html & search_result.html #####
