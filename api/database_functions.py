@@ -242,6 +242,7 @@ def add_food_to_groups(email, dish_uri):
     data, error = supabase_client.table("Group Members Info")\
         .select("group_id")\
         .eq("email", email)\
+        .neq("status", 0)\
         .execute()
 
     group_id_data = data[1]
