@@ -155,7 +155,7 @@ def add_food_to_group(group_id, dish_uri):
     data, _ = supabase_client.table("Group Food List").insert([data_to_insert]).execute()
     return data[1]
 
-def delete_group_from_groupbase(group_id):
+def delete_group(group_id):
     data, _ = supabase_client.table("Group Registration").delete().eq("group_id", group_id).execute()
     return data[1]
 
