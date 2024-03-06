@@ -221,3 +221,31 @@ def add_food_to_group(group_id, dish_uri):
     }
     data, _ = supabase_client.table("Group Food List").insert([data_to_insert]).execute()
     return data[1]
+
+# Function to decline the group invitation 
+# Will delete the row containing email and group id from Group Member Info table
+def decline_group_invitation(group_id, email):
+    data, _ = supabase_client.table("Group Members Info")\
+                .delete()\
+                .eq("group_id", group_id)\
+                .eq("email", email)\
+                .execute()
+    if data[1]:
+        print("Successfully decline the group invitation.")
+        return data[1]
+    else:
+        print("Error, could not decline the invitation")
+
+# Function to accept the group invitation
+# Will update the user's status to 1 in Group Member Info table
+def accept_group_invitation(group_id, email):
+    data, _ = supabase_client.table("Group Members Info")\
+                    .update({"status": 1})\
+                    .eq("email", email)\
+                    .eq("group_id", group_id)\
+                    .execute()
+    if data[1]:
+        print("Successfully accept the group invitation")
+        return data[1]
+    else:
+        print("Error, could not accept the invitation")
