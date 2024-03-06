@@ -49,6 +49,7 @@ def display_user_groups(user_email):
     response, _ = supabase_client.table("Group Members Info")\
                     .select("group_id, status, Group Registration (group_name, description)")\
                     .eq("email", user_email)\
+                    .order("group_id")\
                     .execute()
     
     response_list = response[1]
@@ -70,6 +71,7 @@ def display_group_members(group_id):
     response, _ = supabase_client.table("Group Members Info")\
                         .select("email, status, User Registration (firstname, lastname)")\
                         .eq("group_id", group_id)\
+                        .order("status", desc=True)\
                         .execute()
     response_list = response[1]
     members = [
