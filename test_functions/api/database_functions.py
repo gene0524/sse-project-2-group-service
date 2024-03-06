@@ -1,4 +1,4 @@
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
 import supabase
 import os
 
@@ -80,7 +80,10 @@ def display_group_members(group_id):
             'status': member['status']
         } for member in response_list
     ]
+    print(members)
     return members
+
+display_group_members(1)
 
 # Function to delete a member from the group
 def delete_member_from_group(group_id, email):

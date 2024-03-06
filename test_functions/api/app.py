@@ -96,7 +96,7 @@ def app_display_top_votes():
         #     {'dish_uri': dish_uri},
         #     {'dish_uri': dish_uri}
         # ]
-        return jsonify(topDishes=top_votes)
+        return jsonify(top_votes)
     except Exception as e:
         return jsonify(error=str(e)), 500
 
