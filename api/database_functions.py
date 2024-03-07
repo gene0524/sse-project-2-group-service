@@ -64,6 +64,19 @@ def display_user_groups(user_email):
     ]
     return groups
 
+# Function to accept the group invitation, will set the status to 1 in Group Member Info table
+def accept_group_invitation(group_id, email):
+    data, _ = supabase_client.table("Group Members Info")\
+                    .update({"status": 1})\
+                    .eq("email", email)\
+                    .eq("group_id", group_id)\
+                    .execute()
+    if data[1]:
+        print("Successfully accept the group invitation")
+        return data[1]
+    else:
+        print("Error, could not accept the invitation")
+
 # Function to decline the group invitation, will delete the row containing email and group id from Group Member Info table
 def decline_group_invitation(group_id, email):
     data, _ = supabase_client.table("Group Members Info")\
@@ -77,18 +90,56 @@ def decline_group_invitation(group_id, email):
     else:
         print("Error, could not decline the invitation")
 
-# Function to accept the group invitation, will set the status to 1 in Group Member Info table
-def accept_group_invitation(group_id, email):
-    data, _ = supabase_client.table("Group Members Info")\
-                    .update({"status": 1})\
-                    .eq("email", email)\
+# Function to remove a group for the member
+def remove_group(group_id, email):
+    # Check the status of the member in the group
+    response, error = supabase_client.table("Group Members Info")\
+                    .select("status")\
                     .eq("group_id", group_id)\
+                    .eq("email", email)\
                     .execute()
-    if data[1]:
-        print("Successfully accept the group invitation")
-        return data[1]
+
+    # If no data found, return early
+    if not response[1]:
+        print(f"Error fetching member status or member not found!")
+        return None
+    
+    print(response)
+    
+    # Assuming response is a list of dictionaries
+    member_status = response[1][0]['status']
+    print(member_status)
+
+    # Decide the action based on the member's status
+    if member_status == 2:
+        delete_entire_group(group_id) # If user is owner, delete the entire group
+        return True
+    elif member_status == 1:
+        remove_member_from_group(group_id, email) # If user is member, remove the user from the group
+        return True
     else:
-        print("Error, could not accept the invitation")
+        print("Only the owner and the member could remove the group!")
+        return False
+
+# subfunction of remove_group(), delete the entire group
+def delete_entire_group(group_id):
+    data, error = supabase_client.table("Group Registration").delete().eq("group_id", group_id).execute()
+    if not data[1]:
+        print(f"Error deleting group: {error}")
+        return None
+    else:
+        print(f"Group deleted successfully!")
+    return
+
+# subfunction of remove_group(), delete a member from the group
+def remove_member_from_group(group_id, email):
+    data, error = supabase_client.table("Group Members Info").delete().eq("group_id", group_id).eq("email", email).execute()
+    if not data[1]:
+        print(f"Error removing member from group!")
+        return None
+    else:
+        print(f"Member successfully removed from group!")
+    return
 
 ##### group_info.html #####
 
@@ -110,40 +161,6 @@ def display_group_members(group_id):
     ]
     print(members)
     return members
-
-# Function to delete a member from the group
-def delete_member_from_group(group_id, email):
-    # Check the status of the member in the group
-    response, _ = supabase_client.table("Group Members Info")\
-                    .select("status")\
-                    .eq("group_id", group_id)\
-                    .eq("email", email)\
-                    .execute()
-
-    # If there is an error or no data found, return an error message
-    if not response:
-        print("Error: Failed to retrieve member status or member does not exist.")
-        return {'error': 'Failed to retrieve member status or member does not exist.'}
-
-    # If the status of the member is 2, they are the owner and cannot be deleted
-    member_status = response[1][0]["status"]
-    if member_status == 2:
-        print("Error: Cannot delete group owner.")
-        return {'error': 'Cannot delete group owner.'}
-
-    # If the member is not the owner, proceed to delete them from the group
-    data, _ = supabase_client.table("Group Members Info").delete()\
-                    .eq("group_id", group_id)\
-                    .eq("email", email)\
-                    .execute()
-    if data[1]:
-        print("Successfully deleted!")
-    return data[1]
-
-# Function to delete the group
-def delete_group(group_id):
-    data, _ = supabase_client.table("Group Registration").delete().eq("group_id", group_id).execute()
-    return data[1]
 
 # Function to display the top dish url that has the most votes (LIMIT 5)
 def display_top_votes(group_id):

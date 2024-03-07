@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
 from database_functions import create_group, display_user_groups, accept_group_invitation,\
-    decline_group_invitation, display_group_members, delete_member_from_group, delete_group,\
-    display_top_votes, display_vote_options, click_vote_dish, add_food_to_groups, cancel_vote
+    decline_group_invitation, remove_group, display_group_members, display_top_votes,\
+    display_vote_options, click_vote_dish, cancel_vote, add_food_to_groups
 
 app = Flask(__name__)
 CORS(app) 
@@ -42,7 +42,7 @@ def app_display_user_groups():
 
 # Route to accept a group invitation
 @app.route('/accept-group', methods=['POST'])
-def accept_group():
+def app_accept_group():
     try:
         request_data = request.json
         group_id = request_data.get('group_id')
@@ -57,7 +57,7 @@ def accept_group():
 
 # Route to decline a group invitation
 @app.route('/decline-group', methods=['POST'])
-def decline_group():
+def app_decline_group():
     try:
         request_data = request.json
         group_id = request_data.get('group_id')
@@ -69,6 +69,22 @@ def decline_group():
             return jsonify(error='Failed to decline the group invitation'), 500
     except Exception as e:
         return jsonify(error=str(e)), 500
+
+# Function to remove a group for the member
+@app.route('/remove-group', methods=['POST'])
+def app_remove_group():
+    try:
+        request_data = request.json
+        group_id = request_data.get('group_id')
+        email = request_data.get('email')
+        result = remove_group(group_id, email)
+        
+        if result:
+            return jsonify(message='Group removed successfully')
+        else:
+            return jsonify(error='Failed to remove group'), 500
+    except Exception as e:
+        return jsonify(error=str(e)), 
 
 ##### group_info.html #####
 
@@ -86,31 +102,6 @@ def app_display_group_members():
         # ]
         print(members)
         return jsonify(members)
-    except Exception as e:
-        return jsonify(error=str(e)), 500
-
-# Function to delete a member from the group
-@app.route('/delete-member-from-group', methods=['POST'])
-def app_delete_member_from_group():
-    try:
-        request_data = request.json
-        group_id = request_data.get('groupId')
-        email = request_data.get('userEmail')
-        delete_member_from_group(group_id, email)
-        
-        return jsonify(message='Member deleted successfully')
-    except Exception as e:
-        return jsonify(error=str(e)), 
-
-# Function to delete the group
-@app.route('/delete-group', methods=['POST'])
-def app_delete_group():
-    try:
-        request_data = request.json
-        group_id = request_data.get('groupId')
-        delete_group(group_id)
-        
-        return jsonify(message='Group deleted successfully')
     except Exception as e:
         return jsonify(error=str(e)), 500
 
@@ -189,5 +180,4 @@ def app_add_food_to_groups():
         
         return jsonify(message='Food added successfully')
     except Exception as e:
-        return jsonify(error=str(e)), 500
         return jsonify(error=str(e)), 500
