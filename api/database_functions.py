@@ -317,7 +317,7 @@ def add_food_to_food_list(group_id, dish_uri):
         "votes_count": 0
     }
     data, error = supabase_client.table("Group Food List").insert([data_to_insert]).execute()
-    if error:
-        print(f"Error inserting data: {error}")
+    if not data:
+        print(f"Error inserting data!")
         return False
     return True
