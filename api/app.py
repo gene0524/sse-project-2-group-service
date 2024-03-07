@@ -121,7 +121,7 @@ def app_display_top_votes():
     except Exception as e:
         return jsonify(error=str(e)), 500
 
-##### vote.html #####
+##### voting.html #####
 
 # Function to display the food options to vote (include a flag whether this user has voted for each food)
 @app.route('/display-vote-options', methods=['POST'])

@@ -174,7 +174,7 @@ def display_top_votes(group_id):
     voted_food_list = voted_food[1]
     return voted_food_list
 
-##### vote.html #####
+##### voting.html #####
 
 # Function to display the food options to vote (include a flag whether this user has voted for each food)
 def display_vote_options(group_id, user_email):
