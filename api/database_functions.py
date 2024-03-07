@@ -180,7 +180,7 @@ def click_vote_dish(group_id, user_email, dish_uri):
     # Validate if the user has the right to vote (owner)
     if count < 3:
         valid_click = True
-    
+                
     # If valid to vote, add the dish uri to the table
     if valid_click:
         data_to_insert = {
@@ -211,6 +211,33 @@ def click_vote_dish(group_id, user_email, dish_uri):
     else:
         print("Vote is not successful. Check your condition")
         
+def cancel_vote(group_id, user_email, dish_uri):
+    data, _ = supabase_client.table("Group Vote")\
+                .delete()\
+                .eq("group_id", group_id)\
+                .eq("email", user_email)\
+                .eq("dish_uri", dish_uri)\
+                .execute()
+    # Get the updated count
+    new_count, _ = supabase_client.table("Group Vote")\
+                    .select('*')\
+                    .eq("group_id", group_id)\
+                    .eq("dish_uri", dish_uri)\
+                    .execute()
+    new_count = len(new_count[1])
+        
+    # Update the vote count in the Group Food List table
+    data, _ = supabase_client.table("Group Food List")\
+                    .update({"votes_count": new_count})\
+                    .eq("dish_uri", dish_uri)\
+                    .eq("group_id", group_id)\
+                    .execute()
+    if data[1]:
+        print("Successfully cancel the vote.")
+        return data[1]
+    else:
+        print("Error, could not cancel the vote.")
+     
 
 ##### user_favorites.html & search_result.html #####
 

@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS 
 from database_functions import create_group, display_user_groups, display_group_members,\
     delete_member_from_group, delete_group, display_top_votes, display_vote_options,\
-    click_vote_dish, add_food_to_group, accept_group_invitation, decline_group_invitation
+    click_vote_dish, add_food_to_group, accept_group_invitation, decline_group_invitation, cancel_vote
 
 app = Flask(__name__)
 CORS(app) 
@@ -131,6 +131,20 @@ def app_click_vote_dish():
         return jsonify(message='Vote registered successfully')
     except Exception as e:
         return jsonify(error=str(e)), 500
+    
+# Function to cancel the vote for a dish
+@app.route('/cancel-vote-dish', methods=['POST'])
+def app_cancel_vote_dish():
+    try:
+        request_data = request.json
+        group_id = request_data.get('groupId')
+        user_email = request_data.get('userEmail')
+        dish_uri = request_data.get('dishUri')
+        cancel_vote(group_id, user_email, dish_uri)
+        return jsonify(message='Vote registered successfully')
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
 
 ##### user_favorites.html & search_result.html #####
 
