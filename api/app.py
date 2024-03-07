@@ -176,8 +176,11 @@ def app_add_food_to_groups():
         request_data = request.json
         email = request_data.get('userEmail')
         dish_uri = request_data.get('dishUri')
-        add_food_to_groups(email, dish_uri)
-        
-        return jsonify(message='Food added successfully')
+        result = add_food_to_groups(email, dish_uri)
+        print(result)
+        if result:
+            return jsonify(message='Food added successfully')
+        else:
+            return jsonify(message='Not a member in any groups!')
     except Exception as e:
         return jsonify(error=str(e)), 500

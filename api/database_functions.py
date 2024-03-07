@@ -294,7 +294,7 @@ def add_food_to_groups(email, dish_uri):
     # Check if data was retrieved successfully
     if not group_id_data:
         print("No groups found for the given email.")
-        return
+        return False
 
     # # Extract the group_ids from the query result
     group_ids = [item['group_id'] for item in group_id_data]
@@ -307,6 +307,7 @@ def add_food_to_groups(email, dish_uri):
             print(f"Dish added to group {group_id} successfully.")
         else:
             print(f"Failed to add dish to group {group_id}.")
+    return True
 
 # subfunction of add_food_to_groups(), add the dish_uri to Group Food List table
 def add_food_to_food_list(group_id, dish_uri):
