@@ -1,0 +1,40 @@
+name: Build
+on: [push]
+jobs:
+  python-formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install flake8
+        run: pip install flake8
+      - name: Run flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+  
+  unit-test:
+    needs: python-formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies in requirements.txt 
+        run: pip install -r requirements.txt
+      - name: Install Pytest GitHub Report
+        run: pip install pytest-github-report
+      - name: Generate Pytest Report
+        env:
+          pytest_github_report: true
+          pytest_verbosity: 2
+          FLASK_APP: api
+          FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: pytest tests
