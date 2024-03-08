@@ -355,17 +355,27 @@ def add_food_to_groups(email, dish_uri):
 
     # # Extract the group_ids from the query result
     group_ids = [item["group_id"] for item in group_id_data]
-
-    # For each group_id, add the dish_uri to the "Group Food List"
+    
+    # For each group_id, check if the dish_uri already exists in the "Group Food List"
     for group_id in group_ids:
-        # Use the already defined function to add food to the food list
-        result = add_food_to_food_list(group_id, dish_uri)
-        if result:
-            print(f"Dish added to group {group_id} successfully.")
+        # Query to check if the group_id and dish_uri pair exists
+        existing_data, _ = supabase_client.table("Group Food List")\
+            .select("*")\
+            .eq("group_id", group_id)\
+            .eq("dish_uri", dish_uri)\
+            .execute()
+        
+        # If the pair doesn't exist, add it to the "Group Food List"
+        if not existing_data[1]:
+            result = add_food_to_food_list(group_id, dish_uri)
+            if result:
+                print(f"Dish added to group {group_id} successfully.")
+            else:
+                print(f"Failed to add dish to group {group_id}.")
         else:
-            print(f"Failed to add dish to group {group_id}.")
+            print(f"Dish with URI {dish_uri} already exists in group {group_id}.")
+    
     return True
-
 
 # subfunction of add_food_to_groups(), add the dish_uri to Group Food List table
 def add_food_to_food_list(group_id, dish_uri):
